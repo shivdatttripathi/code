@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daily Task Tracker</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: url("background.jpeg") no-repeat center center fixed;
+        background-size: cover;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      h2 {
+        margin-bottom: 10px;
+        color: white;
+      }
+      .container {
+        width: 90%;
+        max-width: 800px;
+        background: rgba(255, 255, 255, 0.85);
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+      }
+      .task-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+      }
+      .task-card {
+        background: rgba(255, 255, 255, 0.8);
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transition: transform 0.3s, box-shadow 0.3s;
+      }
+      .task-card:hover {
+        transform: scale(1.05);
+        box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
+      }
+      .task-card img {
+        width: 100px;
+        height: 100px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+      }
+      .time-display {
+        margin-top: 5px;
+        font-size: 14px;
+        color: #333;
+      }
+      .completed {
+        text-decoration: line-through;
+        color: gray;
+      }
+      @media (max-width: 600px) {
+        .container {
+          width: 95%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Daily Task Tracker</h2>
+    <div class="container">
+      <label for="datePicker">Select Date:</label>
+      <input type="date" id="datePicker" />
+      <div class="task-grid" id="taskList"></div>
+    </div>
+
+    <script>
+      function formatAMPM(date) {
+        let hours = date.getHours();
+        let minutes = date.getMinutes();
+        let ampm = hours >= 12 ? "PM" : "AM";
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        return hours + ":" + minutes + " " + ampm;
+      }
+
+      const tasks = [
+        {
+          name: "Breakfast & Other Tasks",
+          time: "6:30 AM - 7:30 AM",
+          img: "breakfast.jpg",
+        },
+        {
+          name: "MERN Stack Study",
+          time: "8:00 PM - 11:00 PM",
+          img: "mern.avif",
+        },
+        {
+          name: "DevOps Study",
+          time: "11:00 AM - 12:00 PM",
+          img: "devops.png",
+        },
+        {
+          name: "MongoDB Practice",
+          time: "12:00 PM - 1:00 PM",
+          img: "mongo.png",
+        },
+        {
+          name: "Interview Questions",
+          time: "1:00 PM - 2:00 PM",
+          img: "interview.jpg",
+        },
+        {
+          name: "Project Work & Revision",
+          time: "3:30 PM - 6:00 PM",
+          img: "project.jpeg",
+        },
+        { name: "Make Food", time: "6:00 PM - 7:00 PM", img: "cooking.avif" },
+      ];
+      function loadTasks(date) {
+        const taskList = document.getElementById("taskList");
+        taskList.innerHTML = "";
+        tasks.forEach((task, index) => {
+          const card = document.createElement("div");
+          card.className = "task-card";
+
+          const img = document.createElement("img");
+          img.src = task.img;
+          img.alt = "Task Image";
+
+          const timeLabel = document.createElement("p");
+          timeLabel.textContent = task.time;
+
+          const label = document.createElement("p");
+          label.textContent = task.name;
+
+          const startCheckbox = document.createElement("input");
+          startCheckbox.type = "checkbox";
+          startCheckbox.checked =
+            localStorage.getItem(`${date}-start-${index}`) === "true";
+
+          const startTimeDisplay = document.createElement("p");
+          startTimeDisplay.className = "time-display";
+          startTimeDisplay.textContent =
+            localStorage.getItem(`${date}-start-time-${index}`) ||
+            "Start Time: --:--";
+
+          startCheckbox.addEventListener("change", () => {
+            localStorage.setItem(
+              `${date}-start-${index}`,
+              startCheckbox.checked
+            );
+            if (startCheckbox.checked) {
+              const time = formatAMPM(new Date());
+              localStorage.setItem(
+                `${date}-start-time-${index}`,
+                `Start Time: ${time}`
+              );
+              startTimeDisplay.textContent = `Start Time: ${time}`;
+            }
+          });
+
+          const endCheckbox = document.createElement("input");
+          endCheckbox.type = "checkbox";
+          endCheckbox.checked =
+            localStorage.getItem(`${date}-end-${index}`) === "true";
+
+          const endTimeDisplay = document.createElement("p");
+          endTimeDisplay.className = "time-display";
+          endTimeDisplay.textContent =
+            localStorage.getItem(`${date}-end-time-${index}`) ||
+            "End Time: --:--";
+
+          endCheckbox.addEventListener("change", () => {
+            localStorage.setItem(`${date}-end-${index}`, endCheckbox.checked);
+            if (endCheckbox.checked) {
+              const time = formatAMPM(new Date());
+              localStorage.setItem(
+                `${date}-end-time-${index}`,
+                `End Time: ${time}`
+              );
+              endTimeDisplay.textContent = `End Time: ${time}`;
+            }
+            card.classList.toggle("completed", endCheckbox.checked);
+          });
+
+          if (endCheckbox.checked) {
+            card.classList.add("completed");
+          }
+
+          card.appendChild(img);
+          card.appendChild(timeLabel);
+          card.appendChild(label);
+          card.appendChild(startCheckbox);
+          card.appendChild(startTimeDisplay);
+          card.appendChild(endCheckbox);
+          card.appendChild(endTimeDisplay);
+
+          taskList.appendChild(card);
+        });
+      }
+
+      document
+        .getElementById("datePicker")
+        .addEventListener("change", function () {
+          loadTasks(this.value);
+        });
+
+      window.onload = function () {
+        const today = new Date().toISOString().split("T")[0];
+        document.getElementById("datePicker").value = today;
+        loadTasks(today);
+      };
+    </script>
+  </body>
+</html>
